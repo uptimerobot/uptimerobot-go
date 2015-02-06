@@ -81,7 +81,7 @@ func (c *Client) newRequest(method, path string) *request {
 		config: &c.config,
 		method: method,
 		url: &url.URL{
-			Scheme: "http",
+			Scheme: "https",
 			Host:   c.config.Address,
 			Path:   path,
 		},
