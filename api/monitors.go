@@ -35,6 +35,25 @@ type MonitorResponse struct {
 	ID int `xml:"id,int,attr"`
 }
 
+type GetMonitorsRequest struct {
+	monitorId int
+}
+
+type XMLMonitors struct {
+	Monitors []XMLMonitor `xml:"monitor"`
+}
+
+type XMLMonitor struct {
+	ID            int               `xml:"id,int,attr"`
+	FriendlyName  string            `xml:"friendlyname,string,attr"`
+	URL           string            `xml:"url,string,attr"`
+	ResponseTimes []XMLResponseTime `xml:"responsetime"`
+}
+
+type XMLResponseTime struct {
+	Value int `xml:"value,int,attr"`
+}
+
 // Monitors is used to access the UptimeRobot monitors
 type Monitors struct {
 	c *Client
@@ -140,5 +159,36 @@ func (r *request) setDeleteMonitorRequest(req DeleteMonitorRequest) error {
 		return errors.New("id: required value")
 	}
 	r.params.Set("monitorID", strconv.Itoa(req.id))
+	return nil
+}
+
+func (ad *Monitors) Get(req GetMonitorsRequest) (*XMLMonitors, error) {
+	r := ad.c.newRequest("GET", "/getMonitors")
+	err := r.setGetMonitorsRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
+	_, resp, err := requireOK(ad.c.doRequest(r))
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var out *XMLMonitors
+	if err := decodeBody(resp, &out); err != nil {
+		return nil, err
+	}
+
+	return out, nil
+}
+
+func (r *request) setGetMonitorsRequest(req GetMonitorsRequest) error {
+	if req.monitorId == 0 {
+		return errors.New("monitors: required value")
+	}
+	r.params.Set("monitors", strconv.Itoa(req.monitorId))
+	r.params.Set("responseTimes", "1")
+	r.params.Set("responseTimesAverage", "300")
 	return nil
 }
