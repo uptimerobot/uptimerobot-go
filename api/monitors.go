@@ -36,7 +36,7 @@ type MonitorResponse struct {
 }
 
 type GetMonitorsRequest struct {
-	monitorId int
+	MonitorId int
 }
 
 type XMLMonitors struct {
@@ -184,10 +184,10 @@ func (ad *Monitors) Get(req GetMonitorsRequest) (*XMLMonitors, error) {
 }
 
 func (r *request) setGetMonitorsRequest(req GetMonitorsRequest) error {
-	if req.monitorId == 0 {
+	if req.MonitorId == 0 {
 		return errors.New("monitors: required value")
 	}
-	r.params.Set("monitors", strconv.Itoa(req.monitorId))
+	r.params.Set("monitors", strconv.Itoa(req.MonitorId))
 	r.params.Set("responseTimes", "1")
 	r.params.Set("responseTimesAverage", "300")
 	return nil
