@@ -13,9 +13,9 @@ func TestNewMonitor(t *testing.T) {
 	monitors := c.Monitors()
 
 	var request = NewMonitorRequest{
-		friendlyName: monitorNameForTest,
-		url:          "http://www.apple.com",
-		monitorType:  Http,
+		FriendlyName: monitorNameForTest,
+		Url:          "http://www.apple.com",
+		MonitorType:  Http,
 	}
 	response, err := monitors.New(request)
 	if err != nil {
@@ -34,10 +34,10 @@ func TestEditMonitor(t *testing.T) {
 	monitors := c.Monitors()
 
 	var request = EditMonitorRequest{
-		id:           monitorIdForTest,
-		friendlyName: monitorNameForTest,
-		url:          "http://www.microsoft.com",
-		monitorType:  Http,
+		Id:           monitorIdForTest,
+		FriendlyName: monitorNameForTest,
+		Url:          "http://www.microsoft.com",
+		MonitorType:  Http,
 	}
 	response, err := monitors.Edit(request)
 	if err != nil {
@@ -56,7 +56,7 @@ func TestDeleteMonitor(t *testing.T) {
 	monitors := c.Monitors()
 
 	var request = DeleteMonitorRequest{
-		id: monitorIdForTest,
+		Id: monitorIdForTest,
 	}
 	response, err := monitors.Delete(request)
 	if err != nil {
