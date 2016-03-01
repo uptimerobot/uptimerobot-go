@@ -15,20 +15,20 @@ const (
 )
 
 type NewMonitorRequest struct {
-	friendlyName string
-	url          string
-	monitorType  MonitorType
+	FriendlyName string
+	Url          string
+	MonitorType  MonitorType
 }
 
 type EditMonitorRequest struct {
-	id           int
-	friendlyName string
-	url          string
-	monitorType  MonitorType
+	Id           int
+	FriendlyName string
+	Url          string
+	MonitorType  MonitorType
 }
 
 type DeleteMonitorRequest struct {
-	id int
+	Id int
 }
 
 type MonitorResponse struct {
@@ -66,15 +66,15 @@ func (ad *Monitors) New(req NewMonitorRequest) (*MonitorResponse, error) {
 }
 
 func (r *request) setNewMonitorRequest(req NewMonitorRequest) error {
-	if req.friendlyName == "" {
-		return errors.New("friendlyName: required value")
+	if req.FriendlyName == "" {
+		return errors.New("FriendlyName: required value")
 	}
-	if req.url == "" {
-		return errors.New("url: required value")
+	if req.Url == "" {
+		return errors.New("Url: required value")
 	}
-	r.params.Set("monitorFriendlyName", req.friendlyName)
-	r.params.Set("monitorURL", req.url)
-	r.params.Set("monitorType", strconv.Itoa(int(req.monitorType)))
+	r.params.Set("MonitorFriendlyName", req.FriendlyName)
+	r.params.Set("MonitorURL", req.Url)
+	r.params.Set("MonitorType", strconv.Itoa(int(req.MonitorType)))
 	return nil
 }
 
@@ -99,18 +99,18 @@ func (ad *Monitors) Edit(req EditMonitorRequest) (*MonitorResponse, error) {
 }
 
 func (r *request) setEditMonitorRequest(req EditMonitorRequest) error {
-	if req.id == 0 {
-		return errors.New("id: required value")
+	if req.Id == 0 {
+		return errors.New("Id: required value")
 	}
-	r.params.Set("monitorID", strconv.Itoa(req.id))
-	if req.friendlyName != "" {
-		r.params.Set("monitorFriendlyName", req.friendlyName)
+	r.params.Set("monitorID", strconv.Itoa(req.Id))
+	if req.FriendlyName != "" {
+		r.params.Set("monitorFriendlyName", req.FriendlyName)
 	}
-	if req.url != "" {
-		r.params.Set("monitorURL", req.url)
+	if req.Url != "" {
+		r.params.Set("monitorURL", req.Url)
 	}
-	if int(req.monitorType) != 0 {
-		r.params.Set("monitorType", strconv.Itoa(int(req.monitorType)))
+	if int(req.MonitorType) != 0 {
+		r.params.Set("MonitorType", strconv.Itoa(int(req.MonitorType)))
 	}
 	return nil
 }
@@ -136,9 +136,9 @@ func (ad *Monitors) Delete(req DeleteMonitorRequest) (*MonitorResponse, error) {
 }
 
 func (r *request) setDeleteMonitorRequest(req DeleteMonitorRequest) error {
-	if req.id == 0 {
-		return errors.New("id: required value")
+	if req.Id == 0 {
+		return errors.New("Id: required value")
 	}
-	r.params.Set("monitorID", strconv.Itoa(req.id))
+	r.params.Set("monitorID", strconv.Itoa(req.Id))
 	return nil
 }
