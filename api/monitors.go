@@ -3,6 +3,7 @@ package api
 import (
 	"errors"
 	"strconv"
+	"strings"
 )
 
 type MonitorType int
@@ -15,16 +16,18 @@ const (
 )
 
 type NewMonitorRequest struct {
-	FriendlyName string
-	Url          string
-	MonitorType  MonitorType
+	FriendlyName    string
+	Url             string
+	MonitorType     MonitorType
+	AlertContactIDs []int
 }
 
 type EditMonitorRequest struct {
-	Id           int
-	FriendlyName string
-	Url          string
-	MonitorType  MonitorType
+	Id              int
+	FriendlyName    string
+	Url             string
+	MonitorType     MonitorType
+	AlertContactIDs []int
 }
 
 type DeleteMonitorRequest struct {
@@ -48,6 +51,7 @@ type XMLMonitor struct {
 	FriendlyName  string            `xml:"friendlyname,string,attr"`
 	URL           string            `xml:"url,string,attr"`
 	ResponseTimes []XMLResponseTime `xml:"responsetime"`
+	AlertContacts []alertContact    `xml:"alertcontact"`
 }
 
 type XMLResponseTime struct {
@@ -84,6 +88,14 @@ func (ad *Monitors) New(req NewMonitorRequest) (*MonitorResponse, error) {
 	return out, nil
 }
 
+func formatAlertContactIDs(alertContactIDs []int) string {
+	alertContactIDsAsStrings := make([]string, len(alertContactIDs))
+	for idx, id := range alertContactIDs {
+		alertContactIDsAsStrings[idx] = strconv.Itoa(id) + "_0_0"
+	}
+	return strings.Join(alertContactIDsAsStrings, "-")
+}
+
 func (r *request) setNewMonitorRequest(req NewMonitorRequest) error {
 	if req.FriendlyName == "" {
 		return errors.New("FriendlyName: required value")
@@ -91,9 +103,12 @@ func (r *request) setNewMonitorRequest(req NewMonitorRequest) error {
 	if req.Url == "" {
 		return errors.New("Url: required value")
 	}
-	r.params.Set("MonitorFriendlyName", req.FriendlyName)
-	r.params.Set("MonitorURL", req.Url)
-	r.params.Set("MonitorType", strconv.Itoa(int(req.MonitorType)))
+	r.params.Set("monitorFriendlyName", req.FriendlyName)
+	r.params.Set("monitorURL", req.Url)
+	r.params.Set("monitorType", strconv.Itoa(int(req.MonitorType)))
+	if len(req.AlertContactIDs) > 0 {
+		r.params.Set("monitorAlertContacts", formatAlertContactIDs(req.AlertContactIDs))
+	}
 	return nil
 }
 
@@ -129,7 +144,10 @@ func (r *request) setEditMonitorRequest(req EditMonitorRequest) error {
 		r.params.Set("monitorURL", req.Url)
 	}
 	if int(req.MonitorType) != 0 {
-		r.params.Set("MonitorType", strconv.Itoa(int(req.MonitorType)))
+		r.params.Set("monitorType", strconv.Itoa(int(req.MonitorType)))
+	}
+	if len(req.AlertContactIDs) > 0 {
+		r.params.Set("monitorAlertContacts", formatAlertContactIDs(req.AlertContactIDs))
 	}
 	return nil
 }
