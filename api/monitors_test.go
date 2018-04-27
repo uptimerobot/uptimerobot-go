@@ -88,7 +88,7 @@ func TestGetMonitors(t *testing.T) {
 	monitors := c.Monitors()
 
 	var request = GetMonitorsRequest{
-		monitorId: monitorId,
+		MonitorId: monitorId,
 	}
 	response, err := monitors.Get(request)
 	if err != nil {
@@ -102,5 +102,8 @@ func TestGetMonitors(t *testing.T) {
 	t.Logf("Monitor ID: %d", monitor.ID)
 	t.Logf("Monitor Friendly Name: %s", monitor.FriendlyName)
 	t.Logf("Monitor URL: %s", monitor.URL)
+	t.Logf("Monitor Status: %s", monitor.Status)
+	t.Logf("Monitor Type: %s", monitor.Type)
+	t.Logf("Monitor SubType: %s", monitor.SubType)
 	t.Logf("Monitor Recent Response Time(msec): %d", monitor.ResponseTimes[0].Value)
 }

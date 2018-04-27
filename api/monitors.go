@@ -47,6 +47,9 @@ type XMLMonitor struct {
 	ID            int               `xml:"id,int,attr"`
 	FriendlyName  string            `xml:"friendlyname,string,attr"`
 	URL           string            `xml:"url,string,attr"`
+	Status        string            `xml:"status,string,attr"`
+	Type          string            `xml:"type,string,attr"`
+	SubType       string            `xml:"sub_type,string,attr"`
 	ResponseTimes []XMLResponseTime `xml:"responsetime"`
 }
 
