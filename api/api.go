@@ -1,4 +1,4 @@
-package api
+package v2
 
 import (
 	"bytes"
@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 )
 
@@ -17,9 +18,9 @@ type Config struct {
 	// Address is the address of the UptimeRobot service
 	Address string
 
-	// HttpClient is the client to use. Default will be
+	// HTTPClient is the client to use. Default will be
 	// used if not provided.
-	HttpClient *http.Client
+	HTTPClient *http.Client
 
 	// WaitTime limits how long a Watch will block. If not provided,
 	// the agent default values will be used.
@@ -48,7 +49,7 @@ type request struct {
 func NewClient(apikey string) (*Client, error) {
 	config := &Config{
 		Address:    endpoint,
-		HttpClient: http.DefaultClient,
+		HTTPClient: http.DefaultClient,
 		APIKey:     apikey,
 	}
 
@@ -61,7 +62,7 @@ func NewClient(apikey string) (*Client, error) {
 // toHTTP converts the request to an HTTP request
 func (r *request) toHTTP() (*http.Request, error) {
 	// Encode the query parameters
-	r.url.RawQuery = r.params.Encode()
+	r.body = strings.NewReader(r.params.Encode())
 
 	// Create the HTTP request
 	req, err := http.NewRequest(r.method, r.url.RequestURI(), r.body)
@@ -72,6 +73,7 @@ func (r *request) toHTTP() (*http.Request, error) {
 	req.URL.Host = r.url.Host
 	req.URL.Scheme = r.url.Scheme
 	req.Host = r.url.Host
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	return req, nil
 }
@@ -88,11 +90,10 @@ func (c *Client) newRequest(method, path string) *request {
 		params: make(map[string][]string),
 	}
 	if c.config.APIKey != "" {
-		r.params.Set("apiKey", r.config.APIKey)
+		r.params.Set("api_key", r.config.APIKey)
 	}
 	// Hardcode to xml output. Can't get nested json to decode correctly into nested structs.
 	r.params.Set("format", "xml")
-	//r.params.Set("noJsonCallback", "1")
 	return r
 }
 
@@ -103,7 +104,7 @@ func (c *Client) doRequest(r *request) (time.Duration, *http.Response, error) {
 		return 0, nil, err
 	}
 	start := time.Now()
-	resp, err := c.config.HttpClient.Do(req)
+	resp, err := c.config.HTTPClient.Do(req)
 	diff := time.Now().Sub(start)
 	return diff, resp, err
 }
