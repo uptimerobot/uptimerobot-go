@@ -1,4 +1,4 @@
-package api
+package v2
 
 import (
 	"os"
@@ -7,7 +7,7 @@ import (
 )
 
 var monitorNameForTest = "testmonitor"
-var monitorIdForTest = 0
+var monitorIDForTest = 0
 
 func TestNewMonitor(t *testing.T) {
 	c := makeClient(t)
@@ -16,18 +16,18 @@ func TestNewMonitor(t *testing.T) {
 
 	var request = NewMonitorRequest{
 		FriendlyName: monitorNameForTest,
-		Url:          "http://www.apple.com",
-		MonitorType:  Http,
+		URL:          "http://www.apple.com",
+		MonitorType:  HTTP,
 	}
 	response, err := monitors.New(request)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if response == nil {
-		t.Fatal("No monitor response: %v", response)
+		t.Fatalf("No monitor response: %v", response)
 	}
 	t.Logf("Monitor ID: %d", response.ID)
-	monitorIdForTest = response.ID
+	monitorIDForTest = response.ID
 }
 
 func TestEditMonitor(t *testing.T) {
@@ -36,20 +36,20 @@ func TestEditMonitor(t *testing.T) {
 	monitors := c.Monitors()
 
 	var request = EditMonitorRequest{
-		Id:           monitorIdForTest,
+		ID:           monitorIDForTest,
 		FriendlyName: monitorNameForTest,
-		Url:          "http://www.microsoft.com",
-		MonitorType:  Http,
+		URL:          "http://www.microsoft.com",
+		MonitorType:  HTTP,
 	}
 	response, err := monitors.Edit(request)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if response == nil {
-		t.Fatal("No monitor response: %v", response)
+		t.Fatalf("No monitor response: %v", response)
 	}
 	t.Logf("Monitor ID: %d", response.ID)
-	monitorIdForTest = response.ID
+	monitorIDForTest = response.ID
 }
 
 func TestDeleteMonitor(t *testing.T) {
@@ -58,27 +58,27 @@ func TestDeleteMonitor(t *testing.T) {
 	monitors := c.Monitors()
 
 	var request = DeleteMonitorRequest{
-		Id: monitorIdForTest,
+		ID: monitorIDForTest,
 	}
 	response, err := monitors.Delete(request)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if response == nil {
-		t.Fatal("No monitor response: %v", response)
+		t.Fatalf("No monitor response: %v", response)
 	}
 	t.Logf("Monitor ID: %d", response.ID)
-	monitorIdForTest = response.ID
+	monitorIDForTest = response.ID
 }
 
 func TestGetMonitors(t *testing.T) {
-	envMonitorId := os.Getenv("UPTIMEROBOT_MONITOR_ID")
+	envMonitorID := os.Getenv("UPTIMEROBOT_MONITOR_ID")
 
-	if envMonitorId == "" {
+	if envMonitorID == "" {
 		t.Skip("TestGetMonitors requires UPTIMEROBOT_MONITOR_ID env variable")
 	}
 
-	monitorId, err := strconv.Atoi(envMonitorId)
+	monitorID, err := strconv.Atoi(envMonitorID)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -88,14 +88,14 @@ func TestGetMonitors(t *testing.T) {
 	monitors := c.Monitors()
 
 	var request = GetMonitorsRequest{
-		MonitorId: monitorId,
+		MonitorID: monitorID,
 	}
 	response, err := monitors.Get(request)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if response == nil {
-		t.Fatal("No monitor response: %v", response)
+		t.Fatalf("No monitor response: %v", response)
 	}
 
 	monitor := response.Monitors[0]

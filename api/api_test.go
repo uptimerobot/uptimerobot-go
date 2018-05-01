@@ -1,4 +1,4 @@
-package api
+package v2
 
 import (
 	"os"
@@ -7,7 +7,7 @@ import (
 
 func makeClient(t *testing.T) *Client {
 	// Create client
-	client, err := NewClient(os.Getenv("UPTIMEROBOT_KEY"))
+	client, err := NewClient(os.Getenv("UPTIMEROBOT_API_KEY"))
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
