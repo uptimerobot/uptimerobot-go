@@ -61,23 +61,24 @@ type XMLMonitors struct {
 // XMLMonitor XML representation of Monitor
 type XMLMonitor struct {
 	ID            int               `xml:"id,int,attr"`
-	FriendlyName  string            `xml:"friendlyname,string,attr"`
+	FriendlyName  string            `xml:"friendly_name,string,attr"`
 	URL           string            `xml:"url,string,attr"`
 	Status        string            `xml:"status,string,attr"`
 	Type          string            `xml:"type,string,attr"`
 	SubType       string            `xml:"sub_type,string,attr"`
-	ResponseTimes []XMLResponseTime `xml:"response_times"`
+	ResponseTimes []XMLResponseTime `xml:"response_times>response_time"`
+}
+
+// XMLResponseTime XML representation of Response Time
+type XMLResponseTime struct {
+	XMLName xml.Name `xml:"response_time"`
+	Value   int      `xml:"value,int,attr"`
 }
 
 // XMLErrorResponse XML representation of error response
 type XMLErrorResponse struct {
 	XMLName xml.Name `xml:"error"`
 	Type    string   `xml:"type,string,attr"`
-}
-
-// XMLResponseTime XML representation of Monitor Response Time
-type XMLResponseTime struct {
-	Value int `xml:"value,int,attr"`
 }
 
 // Monitors is used to return a handle to the monitors apis
