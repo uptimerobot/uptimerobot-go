@@ -2,7 +2,6 @@ package api
 
 import (
 	"os"
-	"strconv"
 	"testing"
 )
 
@@ -27,6 +26,7 @@ func TestNewMonitor(t *testing.T) {
 		t.Fatalf("No monitor response: %v", response)
 	}
 	t.Logf("Monitor ID: %d", response.ID)
+	t.Logf("New Monitor Response: %d", response.ID)
 	monitorIDForTest = response.ID
 }
 
@@ -72,23 +72,16 @@ func TestDeleteMonitor(t *testing.T) {
 }
 
 func TestGetMonitors(t *testing.T) {
-	envMonitorID := os.Getenv("UPTIMEROBOT_MONITOR_ID")
-
-	if envMonitorID == "" {
-		t.Skip("TestGetMonitors requires UPTIMEROBOT_MONITOR_ID env variable")
-	}
-
-	monitorID, err := strconv.Atoi(envMonitorID)
-	if err != nil {
-		t.Fatal(err)
-	}
+	monitorID := os.Getenv("UPTIMEROBOT_MONITOR_ID")
 
 	c := makeClient(t)
 
 	monitors := c.Monitors()
 
 	var request = GetMonitorsRequest{
-		MonitorID: monitorID,
+		MonitorID:          monitorID,
+		ResponseTimes:      1,
+		ResponseTimesLimit: 1,
 	}
 	response, err := monitors.Get(request)
 	if err != nil {
@@ -98,12 +91,13 @@ func TestGetMonitors(t *testing.T) {
 		t.Fatalf("No monitor response: %v", response)
 	}
 
-	monitor := response.Monitors[0]
-	t.Logf("Monitor ID: %d", monitor.ID)
-	t.Logf("Monitor Friendly Name: %s", monitor.FriendlyName)
-	t.Logf("Monitor URL: %s", monitor.URL)
-	t.Logf("Monitor Status: %s", monitor.Status)
-	t.Logf("Monitor Type: %s", monitor.Type)
-	t.Logf("Monitor SubType: %s", monitor.SubType)
-	t.Logf("Monitor Recent Response Time(msec): %d", monitor.ResponseTimes[0].Value)
+	for _, monitor := range response.Monitors {
+		t.Logf("Monitor ID: %d", monitor.ID)
+		t.Logf("Monitor Friendly Name: %s", monitor.FriendlyName)
+		t.Logf("Monitor URL: %s", monitor.URL)
+		t.Logf("Monitor Status: %s", monitor.Status)
+		t.Logf("Monitor Type: %s", monitor.Type)
+		t.Logf("Monitor SubType: %s", monitor.SubType)
+		t.Logf("Monitor Recent Response Time(msec): %d", monitor.ResponseTimes[0].Value)
+	}
 }
