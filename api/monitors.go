@@ -51,6 +51,8 @@ type GetMonitorsRequest struct {
 	MonitorID          string
 	ResponseTimes      int
 	ResponseTimesLimit int
+	Offset             int
+	Limit              int
 }
 
 // XMLMonitors XML response with list monitors
@@ -60,6 +62,7 @@ type XMLMonitors struct {
 
 // XMLMonitor XML representation of Monitor
 type XMLMonitor struct {
+	Pagination    XMLPagination     `xml:"pagination"`
 	ID            int               `xml:"id,int,attr"`
 	FriendlyName  string            `xml:"friendly_name,string,attr"`
 	URL           string            `xml:"url,string,attr"`
@@ -67,6 +70,14 @@ type XMLMonitor struct {
 	Type          string            `xml:"type,string,attr"`
 	SubType       string            `xml:"sub_type,string,attr"`
 	ResponseTimes []XMLResponseTime `xml:"response_times>response_time"`
+}
+
+// XMLPagination XML representation of Pagination response
+type XMLPagination struct {
+	XMLName xml.Name `xml:"pagination"`
+	Offset  int      `xml:"offset,int,attr"`
+	Limit   int      `xml:"limit,int,attr"`
+	Total   int      `xml:"total,int,attr"`
 }
 
 // XMLResponseTime XML representation of Response Time
@@ -245,6 +256,12 @@ func (r *request) setGetMonitorsRequest(req GetMonitorsRequest) error {
 	}
 	if req.ResponseTimesLimit != 0 {
 		r.params.Set("response_times_limit", strconv.Itoa(req.ResponseTimes))
+	}
+	if req.Offset != 0 {
+		r.params.Set("offset", strconv.Itoa(req.Offset))
+	}
+	if req.Limit != 0 {
+		r.params.Set("limit", strconv.Itoa(req.Limit))
 	}
 	return nil
 }
