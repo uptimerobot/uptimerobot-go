@@ -2,7 +2,6 @@ package api
 
 import (
 	"bytes"
-	"encoding/xml"
 	"fmt"
 	"io"
 	"net/http"
@@ -107,12 +106,6 @@ func (c *Client) doRequest(r *request) (time.Duration, *http.Response, error) {
 	resp, err := c.config.HTTPClient.Do(req)
 	diff := time.Now().Sub(start)
 	return diff, resp, err
-}
-
-// decodeBody is used to XML decode a body
-func decodeBody(resp *http.Response, out interface{}) error {
-	dec := xml.NewDecoder(resp.Body)
-	return dec.Decode(out)
 }
 
 // requireOK is used to wrap doRequest and check for a 200

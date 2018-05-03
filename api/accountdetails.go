@@ -1,6 +1,8 @@
 package api
 
 import (
+	"encoding/xml"
+	"io/ioutil"
 	"log"
 )
 
@@ -37,8 +39,9 @@ func (ad *AccountDetails) Get() (*Account, error) {
 	}
 	defer resp.Body.Close()
 
+	body, _ := ioutil.ReadAll(resp.Body)
 	var out *Account
-	if err := decodeBody(resp, &out); err != nil {
+	if err := xml.Unmarshal(body, &out); err != nil {
 		return nil, err
 	}
 	return out, nil

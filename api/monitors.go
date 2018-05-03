@@ -1,7 +1,9 @@
 package api
 
 import (
+	"encoding/xml"
 	"errors"
+	"io/ioutil"
 	"strconv"
 )
 
@@ -46,7 +48,9 @@ type MonitorResponse struct {
 
 // GetMonitorsRequest Request for Monitors
 type GetMonitorsRequest struct {
-	MonitorID int
+	MonitorID          string
+	ResponseTimes      int
+	ResponseTimesLimit int
 }
 
 // XMLMonitors XML response with list monitors
@@ -62,7 +66,13 @@ type XMLMonitor struct {
 	Status        string            `xml:"status,string,attr"`
 	Type          string            `xml:"type,string,attr"`
 	SubType       string            `xml:"sub_type,string,attr"`
-	ResponseTimes []XMLResponseTime `xml:"responsetime"`
+	ResponseTimes []XMLResponseTime `xml:"response_times"`
+}
+
+// XMLErrorResponse XML representation of error response
+type XMLErrorResponse struct {
+	XMLName xml.Name `xml:"error"`
+	Type    string   `xml:"type,string,attr"`
 }
 
 // XMLResponseTime XML representation of Monitor Response Time
@@ -80,6 +90,15 @@ type Monitors struct {
 	c *Client
 }
 
+func errorResponse(body []byte) error {
+	var errorOut *XMLErrorResponse
+	err := xml.Unmarshal(body, &errorOut)
+	if err != nil {
+		return err
+	}
+	return errors.New(errorOut.Type)
+}
+
 // New Request for creating a new Monitor
 // See NewMonitorRequest
 func (ad *Monitors) New(req NewMonitorRequest) (*MonitorResponse, error) {
@@ -94,11 +113,17 @@ func (ad *Monitors) New(req NewMonitorRequest) (*MonitorResponse, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
+	body, _ := ioutil.ReadAll(resp.Body)
 
 	var out *MonitorResponse
-	if err := decodeBody(resp, &out); err != nil {
+	if err := xml.Unmarshal(body, &out); err != nil {
 		return nil, err
 	}
+
+	if out.ID == 0 {
+		return nil, errorResponse(body)
+	}
+
 	return out, nil
 }
 
@@ -129,9 +154,10 @@ func (ad *Monitors) Edit(req EditMonitorRequest) (*MonitorResponse, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
+	body, _ := ioutil.ReadAll(resp.Body)
 
 	var out *MonitorResponse
-	if err := decodeBody(resp, &out); err != nil {
+	if err := xml.Unmarshal(body, &out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -168,9 +194,10 @@ func (ad *Monitors) Delete(req DeleteMonitorRequest) (*MonitorResponse, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
+	body, _ := ioutil.ReadAll(resp.Body)
 
 	var out *MonitorResponse
-	if err := decodeBody(resp, &out); err != nil {
+	if err := xml.Unmarshal(body, &out); err != nil {
 		return nil, err
 	}
 	return out, nil
@@ -198,9 +225,10 @@ func (ad *Monitors) Get(req GetMonitorsRequest) (*XMLMonitors, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
+	body, _ := ioutil.ReadAll(resp.Body)
 
 	var out *XMLMonitors
-	if err := decodeBody(resp, &out); err != nil {
+	if err := xml.Unmarshal(body, &out); err != nil {
 		return nil, err
 	}
 
@@ -208,11 +236,14 @@ func (ad *Monitors) Get(req GetMonitorsRequest) (*XMLMonitors, error) {
 }
 
 func (r *request) setGetMonitorsRequest(req GetMonitorsRequest) error {
-	if req.MonitorID == 0 {
-		return errors.New("monitors: required value")
+	if req.MonitorID != "" {
+		r.params.Set("monitors", req.MonitorID)
 	}
-	r.params.Set("monitors", strconv.Itoa(req.MonitorID))
-	r.params.Set("responseTimes", "1")
-	r.params.Set("responseTimesAverage", "300")
+	if req.ResponseTimes != 0 {
+		r.params.Set("response_times", strconv.Itoa(req.ResponseTimes))
+	}
+	if req.ResponseTimesLimit != 0 {
+		r.params.Set("response_times_limit", strconv.Itoa(req.ResponseTimes))
+	}
 	return nil
 }
