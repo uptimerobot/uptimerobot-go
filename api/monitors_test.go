@@ -92,6 +92,8 @@ func TestGetMonitors(t *testing.T) {
 	}
 
 	for _, monitor := range response.Monitors {
+		t.Logf("Pagination Offset: %d", monitor.Pagination.Offset)
+		t.Logf("Pagination Limit: %d", monitor.Pagination.Limit)
 		t.Logf("Monitor ID: %d", monitor.ID)
 		t.Logf("Monitor Friendly Name: %s", monitor.FriendlyName)
 		t.Logf("Monitor URL: %s", monitor.URL)
