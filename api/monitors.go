@@ -57,12 +57,12 @@ type GetMonitorsRequest struct {
 
 // XMLMonitors XML response with list monitors
 type XMLMonitors struct {
-	Monitors []XMLMonitor `xml:"monitor"`
+	Pagination XMLPagination `xml:"pagination"`
+	Monitors   []XMLMonitor  `xml:"monitor"`
 }
 
 // XMLMonitor XML representation of Monitor
 type XMLMonitor struct {
-	Pagination    XMLPagination     `xml:"pagination"`
 	ID            int               `xml:"id,int,attr"`
 	FriendlyName  string            `xml:"friendly_name,string,attr"`
 	URL           string            `xml:"url,string,attr"`
