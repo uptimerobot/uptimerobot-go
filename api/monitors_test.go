@@ -24,7 +24,7 @@ func TestNewMonitor(t *testing.T) {
 		t.Fatal(err)
 	}
 	if response == nil {
-		t.Fatal("No monitor response: %v", response)
+		t.Fatalf("No monitor response: %v", response)
 	}
 	t.Logf("Monitor ID: %d", response.ID)
 	monitorIdForTest = response.ID
@@ -39,14 +39,13 @@ func TestEditMonitor(t *testing.T) {
 		Id:           monitorIdForTest,
 		FriendlyName: monitorNameForTest,
 		Url:          "http://www.microsoft.com",
-		MonitorType:  Http,
 	}
 	response, err := monitors.Edit(request)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if response == nil {
-		t.Fatal("No monitor response: %v", response)
+		t.Fatalf("No monitor response: %v", response)
 	}
 	t.Logf("Monitor ID: %d", response.ID)
 	monitorIdForTest = response.ID
@@ -65,7 +64,7 @@ func TestDeleteMonitor(t *testing.T) {
 		t.Fatal(err)
 	}
 	if response == nil {
-		t.Fatal("No monitor response: %v", response)
+		t.Fatalf("No monitor response: %v", response)
 	}
 	t.Logf("Monitor ID: %d", response.ID)
 	monitorIdForTest = response.ID
@@ -88,19 +87,19 @@ func TestGetMonitors(t *testing.T) {
 	monitors := c.Monitors()
 
 	var request = GetMonitorsRequest{
-		monitorId: monitorId,
+		MonitorId: monitorId,
 	}
 	response, err := monitors.Get(request)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if response == nil {
-		t.Fatal("No monitor response: %v", response)
+		t.Fatalf("No monitor response: %v", response)
 	}
 
 	monitor := response.Monitors[0]
 	t.Logf("Monitor ID: %d", monitor.ID)
 	t.Logf("Monitor Friendly Name: %s", monitor.FriendlyName)
 	t.Logf("Monitor URL: %s", monitor.URL)
-	t.Logf("Monitor Recent Response Time(msec): %d", monitor.ResponseTimes[0].Value)
+	t.Logf("Monitor Recent Response Time(msec): %d", monitor.ResponseTimeList.ResponseTimes[0].Value)
 }

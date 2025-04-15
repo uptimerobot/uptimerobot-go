@@ -7,10 +7,11 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 )
 
-const endpoint = "api.uptimerobot.com"
+const endpoint = "api.uptimerobot.com/v2"
 
 // Config is used to configure the creation of a client
 type Config struct {
@@ -39,8 +40,7 @@ type request struct {
 	config *Config
 	method string
 	url    *url.URL
-	params url.Values
-	body   io.Reader
+	body   url.Values
 	obj    interface{}
 }
 
@@ -60,11 +60,8 @@ func NewClient(apikey string) (*Client, error) {
 
 // toHTTP converts the request to an HTTP request
 func (r *request) toHTTP() (*http.Request, error) {
-	// Encode the query parameters
-	r.url.RawQuery = r.params.Encode()
-
 	// Create the HTTP request
-	req, err := http.NewRequest(r.method, r.url.RequestURI(), r.body)
+	req, err := http.NewRequest(r.method, r.url.RequestURI(), strings.NewReader(r.body.Encode()))
 	if err != nil {
 		return nil, err
 	}
@@ -72,26 +69,31 @@ func (r *request) toHTTP() (*http.Request, error) {
 	req.URL.Host = r.url.Host
 	req.URL.Scheme = r.url.Scheme
 	req.Host = r.url.Host
+	req.Header.Add("Cache-Control", "no-cache")
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
 	return req, nil
 }
 
 func (c *Client) newRequest(method, path string) *request {
+	addressSplit := strings.Split(c.config.Address, "/")
+	host := addressSplit[0]
+	apiVersion := "/" + addressSplit[1]
 	r := &request{
 		config: &c.config,
 		method: method,
 		url: &url.URL{
 			Scheme: "https",
-			Host:   c.config.Address,
-			Path:   path,
+			Host:   host,
+			Path:   apiVersion + path,
 		},
-		params: make(map[string][]string),
+		body: url.Values{},
 	}
 	if c.config.APIKey != "" {
-		r.params.Set("apiKey", r.config.APIKey)
+		r.body.Set("api_key", r.config.APIKey)
 	}
 	// Hardcode to xml output. Can't get nested json to decode correctly into nested structs.
-	r.params.Set("format", "xml")
+	r.body.Set("format", "xml")
 	//r.params.Set("noJsonCallback", "1")
 	return r
 }

@@ -1,10 +1,12 @@
 package api
 
 type Account struct {
-	MonitorLimit   int `xml:"monitorlimit,int,attr"`
-	UpMonitors     int `xml:"upmonitors,int,attr"`
-	DownMonitors   int `xml:"downmonitors,int,attr"`
-	PausedMonitors int `xml:"pausedmonitors,int,attr"`
+	Email           string `xml:"email,string,attr"`
+	MonitorLimit    int    `xml:"monitor_limit,int,attr"`
+	MonitorInterval int    `xml:"monitor_interval,int,attr"`
+	UpMonitors      int    `xml:"up_monitors,int,attr"`
+	DownMonitors    int    `xml:"down_monitors,int,attr"`
+	PausedMonitors  int    `xml:"paused_monitors,int,attr"`
 }
 
 // AccountDetails is used to access the UptimeRobot account details
@@ -18,7 +20,7 @@ func (c *Client) AccountDetails() *AccountDetails {
 }
 
 func (ad *AccountDetails) Get() (*Account, error) {
-	r := ad.c.newRequest("GET", "/getAccountDetails")
+	r := ad.c.newRequest("POST", "/getAccountDetails")
 	_, resp, err := requireOK(ad.c.doRequest(r))
 	if err != nil {
 		return nil, err

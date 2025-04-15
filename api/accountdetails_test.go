@@ -15,7 +15,7 @@ func TestGetAccountDetails(t *testing.T) {
 		t.Fatal(err)
 	}
 	if details == nil {
-		t.Fatal("No account details: %v", details)
+		t.Fatalf("No account details: %v", details)
 	}
 	t.Logf("Monitor Limit  : %d", details.MonitorLimit)
 	t.Logf("Up Monitors    : %d", details.UpMonitors)
