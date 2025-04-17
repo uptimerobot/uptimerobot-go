@@ -79,6 +79,8 @@ func (r *request) toHTTP() (*http.Request, error) {
 	return req, nil
 }
 
+// newRequest returns a request containing all the required data
+// to construct an HTTP request.
 func (c *Client) newRequest(method, path string) *request {
 	addressSplit := strings.Split(c.config.Address, "/")
 	host := addressSplit[0]
