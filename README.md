@@ -10,6 +10,7 @@ Code layout heavily influenced by the [Consul API](https://github.com/hashicorp/
 * newMonitor
 * editMonitor
 * deleteMonitor
+* getMonitor
 
 See the test code for usage examples.
 
@@ -22,3 +23,4 @@ See the test code for usage examples.
 ## Contributors
 
 * [Ringo De Smet](https://github.com/ringods)
+* [Jonathan Bowe](https://github.com/BoweFlex)
