@@ -43,6 +43,13 @@ type request struct {
 	obj    interface{}
 }
 
+// pagination is used to determine if additional requests are needed
+type pagination struct {
+	Limit  int `xml:"limit,int,attr"`
+	Offset int `xml:"offset,int,attr"`
+	Total  int `xml:"total,int,attr"`
+}
+
 // NewClient returns a new client, wrapping the httpClient provided
 // This allows users to specify things like http.Client.Timeout,
 // or use the same default client previously provided.

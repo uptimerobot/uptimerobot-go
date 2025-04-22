@@ -3,6 +3,7 @@ package api
 import (
 	"os"
 	"strconv"
+	"strings"
 	"testing"
 )
 
@@ -72,7 +73,6 @@ func TestDeleteMonitor(t *testing.T) {
 
 func TestGetMonitors(t *testing.T) {
 	envMonitorId := os.Getenv("UPTIMEROBOT_MONITOR_ID")
-
 	if envMonitorId == "" {
 		t.Skip("TestGetMonitors requires UPTIMEROBOT_MONITOR_ID env variable")
 	}
@@ -82,24 +82,44 @@ func TestGetMonitors(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	envMonitorIdList := os.Getenv("UPTIMEROBOT_MONITOR_ID_LIST") // Should be CSV with at least two IDs
+	if envMonitorIdList == "" {
+		t.Skip("TestGetMonitors requires UPTIMEROBOT_MONITOR_ID_LIST env variable")
+	}
+	monitorIds := []int{}
+	for _, idStr := range strings.Split(envMonitorIdList, ",") {
+		id, err := strconv.Atoi(idStr)
+		if err != nil {
+			t.Fatal(err)
+		}
+		monitorIds = append(monitorIds, id)
+	}
+
 	c := makeClient(t)
 
 	monitors := c.Monitors()
 
-	var request = GetMonitorsRequest{
-		MonitorId: monitorId,
+	getTests := []struct {
+		name    string
+		request GetMonitorsRequest
+	}{
+		{name: "Single ID", request: GetMonitorsRequest{MonitorIds: []int{monitorId}}},
+		{name: "All monitors", request: GetMonitorsRequest{MonitorIds: []int{}}},
+		{name: "Multiple monitors", request: GetMonitorsRequest{MonitorIds: monitorIds}},
 	}
-	response, err := monitors.Get(request)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if response == nil {
-		t.Fatalf("No monitor response: %v", response)
-	}
+	for _, tt := range getTests {
+		t.Run(tt.name, func(t *testing.T) {
 
-	monitor := response.Monitors[0]
-	t.Logf("Monitor ID: %d", monitor.ID)
-	t.Logf("Monitor Friendly Name: %s", monitor.FriendlyName)
-	t.Logf("Monitor URL: %s", monitor.URL)
-	t.Logf("Monitor Recent Response Time(msec): %d", monitor.ResponseTimeList.ResponseTimes[0].Value)
+			response, err := monitors.Get(tt.request)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if response == nil {
+				t.Fatalf("No monitor response: %v", response)
+			}
+			for _, monitor := range response.Monitors {
+				t.Logf("Monitor Friendly Name: %s\n", monitor.FriendlyName)
+			}
+		})
+	}
 }

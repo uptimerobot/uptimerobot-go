@@ -2,6 +2,7 @@ package api
 
 import (
 	"errors"
+	"slices"
 	"strconv"
 )
 
@@ -48,12 +49,13 @@ type MonitorResponse struct {
 
 // GetMonitorsRequest provides the data to request Monitor information
 type GetMonitorsRequest struct {
-	MonitorId int
+	MonitorIds []int
 }
 
 // XMLMonitors contains a slice of XMLMonitor structs
 type XMLMonitors struct {
-	Monitors []XMLMonitor `xml:"monitor"`
+	Pagination pagination   `xml:"pagination"`
+	Monitors   []XMLMonitor `xml:"monitor"`
 }
 
 // XML Monitor is used to construct and return details for one monitor
@@ -87,14 +89,14 @@ func (c *Client) Monitors() *Monitors {
 
 // Returns a MonitorResponse, containing an ID for the monitor edited,
 // or an error.
-func (ad *Monitors) New(req NewMonitorRequest) (*MonitorResponse, error) {
-	r := ad.c.newRequest("POST", "/newMonitor")
+func (m *Monitors) New(req NewMonitorRequest) (*MonitorResponse, error) {
+	r := m.c.newRequest("POST", "/newMonitor")
 	err := r.setNewMonitorRequest(req)
 	if err != nil {
 		return nil, err
 	}
 
-	_, resp, err := requireOK(ad.c.doRequest(r))
+	_, resp, err := requireOK(m.c.doRequest(r))
 	if err != nil {
 		return nil, err
 	}
@@ -126,14 +128,14 @@ func (r *request) setNewMonitorRequest(req NewMonitorRequest) error {
 // or an error.
 // Per https://uptimerobot.com/api/#editMonitorWrap, monitor type cannot be edited.
 // To change type, monitors should be deleted and recreated.
-func (ad *Monitors) Edit(req EditMonitorRequest) (*MonitorResponse, error) {
-	r := ad.c.newRequest("POST", "/editMonitor")
+func (m *Monitors) Edit(req EditMonitorRequest) (*MonitorResponse, error) {
+	r := m.c.newRequest("POST", "/editMonitor")
 	err := r.setEditMonitorRequest(req)
 	if err != nil {
 		return nil, err
 	}
 
-	_, resp, err := requireOK(ad.c.doRequest(r))
+	_, resp, err := requireOK(m.c.doRequest(r))
 	if err != nil {
 		return nil, err
 	}
@@ -164,14 +166,14 @@ func (r *request) setEditMonitorRequest(req EditMonitorRequest) error {
 
 // Returns a MonitorResponse, containing an ID for the monitor deleted,
 // or an error
-func (ad *Monitors) Delete(req DeleteMonitorRequest) (*MonitorResponse, error) {
-	r := ad.c.newRequest("POST", "/deleteMonitor")
+func (m *Monitors) Delete(req DeleteMonitorRequest) (*MonitorResponse, error) {
+	r := m.c.newRequest("POST", "/deleteMonitor")
 	err := r.setDeleteMonitorRequest(req)
 	if err != nil {
 		return nil, err
 	}
 
-	_, resp, err := requireOK(ad.c.doRequest(r))
+	_, resp, err := requireOK(m.c.doRequest(r))
 	if err != nil {
 		return nil, err
 	}
@@ -194,17 +196,18 @@ func (r *request) setDeleteMonitorRequest(req DeleteMonitorRequest) error {
 	return nil
 }
 
-// Returns an XMLMonitors struct,
-// containing a list of monitors with their associated data,
-// or an error
-func (ad *Monitors) Get(req GetMonitorsRequest) (*XMLMonitors, error) {
-	r := ad.c.newRequest("POST", "/getMonitors")
+// Helper func that returns a page of monitors,
+// used by Monitors.Get to return a full list of monitors that match the request
+func (m *Monitors) getPage(req GetMonitorsRequest, offset int) (*XMLMonitors, error) {
+	r := m.c.newRequest("POST", "/getMonitors")
 	err := r.setGetMonitorsRequest(req)
 	if err != nil {
 		return nil, err
 	}
 
-	_, resp, err := requireOK(ad.c.doRequest(r))
+	r.body.Set("offset", strconv.Itoa(offset))
+
+	_, resp, err := requireOK(m.c.doRequest(r))
 	if err != nil {
 		return nil, err
 	}
@@ -218,13 +221,45 @@ func (ad *Monitors) Get(req GetMonitorsRequest) (*XMLMonitors, error) {
 	return out, nil
 }
 
+// Returns an XMLMonitors struct,
+// containing a list of monitors with their associated data,
+// or an error
+func (m *Monitors) Get(req GetMonitorsRequest) (*XMLMonitors, error) {
+	var offset int
+	var monitors XMLMonitors
+	var maxRecords int = 1
+
+	for len(monitors.Monitors) < maxRecords {
+		monitorPage, err := m.getPage(req, offset)
+		if err != nil {
+			return nil, err
+		}
+		monitors.Monitors = append(monitors.Monitors, monitorPage.Monitors...)
+		offset += monitorPage.Pagination.Limit
+		maxRecords = monitorPage.Pagination.Total
+		if 0 != len(req.MonitorIds) && len(req.MonitorIds) == len(monitors.Monitors) {
+			break
+		}
+	}
+	return &monitors, nil
+}
+
 // Helper func for Get to construct http request body
 // using the provided GetMonitorsRequest struct
 func (r *request) setGetMonitorsRequest(req GetMonitorsRequest) error {
-	if req.MonitorId == 0 {
-		return errors.New("MonitorId: required value")
+	// if the slice of Ids provided is empty, return all monitors in the account,
+	// otherwise create a string in format "<id>-<id>..." and return requested ids
+	if 0 != len(req.MonitorIds) {
+		var monitorsStr string
+		for _, id := range req.MonitorIds {
+			if "" == monitorsStr {
+				monitorsStr += strconv.Itoa(id)
+				continue
+			}
+			monitorsStr = monitorsStr + "-" + strconv.Itoa(id)
+		}
+		r.body.Set("monitors", monitorsStr)
 	}
-	r.body.Set("monitors", strconv.Itoa(req.MonitorId))
 	r.body.Set("response_times", "1")
 	r.body.Set("response_times_average", "300")
 	return nil
