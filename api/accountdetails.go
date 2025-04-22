@@ -1,5 +1,7 @@
 package api
 
+// Account is used to construct and return Account Details
+// For more information on the provided data, see https://uptimerobot.com/api/#getAccountDetailsWrap
 type Account struct {
 	Email           string `xml:"email,string,attr"`
 	MonitorLimit    int    `xml:"monitor_limit,int,attr"`
@@ -19,6 +21,7 @@ func (c *Client) AccountDetails() *AccountDetails {
 	return &AccountDetails{c}
 }
 
+// Returns Account Details for the current client
 func (ad *AccountDetails) Get() (*Account, error) {
 	r := ad.c.newRequest("POST", "/getAccountDetails")
 	_, resp, err := requireOK(ad.c.doRequest(r))

@@ -18,8 +18,7 @@ type Config struct {
 	// Address is the address of the UptimeRobot service
 	Address string
 
-	// HttpClient is the client to use. Default will be
-	// used if not provided.
+	// HttpClient is the client to use. This will be an http.defaultClient if nothing is provided.
 	HttpClient *http.Client
 
 	// WaitTime limits how long a Watch will block. If not provided,
@@ -44,11 +43,16 @@ type request struct {
 	obj    interface{}
 }
 
-// NewClient returns a new client
-func NewClient(apikey string) (*Client, error) {
+// NewClient returns a new client, wrapping the httpClient provided
+// This allows users to specify things like http.Client.Timeout,
+// or use the same default client previously provided.
+func NewClient(apikey string, httpClient *http.Client) (*Client, error) {
+	if httpClient == nil {
+		httpClient = http.DefaultClient
+	}
 	config := &Config{
 		Address:    endpoint,
-		HttpClient: http.DefaultClient,
+		HttpClient: httpClient,
 		APIKey:     apikey,
 	}
 
@@ -75,6 +79,8 @@ func (r *request) toHTTP() (*http.Request, error) {
 	return req, nil
 }
 
+// newRequest returns a request containing all the required data
+// to construct an HTTP request.
 func (c *Client) newRequest(method, path string) *request {
 	addressSplit := strings.Split(c.config.Address, "/")
 	host := addressSplit[0]
